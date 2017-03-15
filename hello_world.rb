@@ -1,6 +1,8 @@
 require 'sinatra'
 
-set :bind, '0.0.0.0'
+configure do
+  set :bind, '0.0.0.0'
+end
 
 
 
