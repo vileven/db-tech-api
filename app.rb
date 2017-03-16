@@ -2,8 +2,14 @@ require 'sinatra'
 require 'pg'
 require './init'
 
+configure do
+  set :bind, '0.0.0.0'
+end
+
 get '/' do
-  sql('select version from schema_info').first['version']
+
+  # sql('select version from schema_info').first['version']
+  ENV['DATABASE_URL']
 end
 
 get '/create/test/db' do
