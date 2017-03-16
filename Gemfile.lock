@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.1)
+    kgio (2.11.0)
     method_source (0.8.2)
     pg (0.19.0)
     pry (0.10.4)
@@ -13,12 +14,16 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
+    raindrops (0.17.0)
     sinatra (1.4.8)
       rack (~> 1.5)
       rack-protection (~> 1.4)
       tilt (>= 1.3, < 3)
     slop (3.6.0)
     tilt (2.0.5)
+    unicorn (5.2.0)
+      kgio (~> 2.6)
+      raindrops (~> 0.7)
 
 PLATFORMS
   ruby
@@ -29,6 +34,7 @@ DEPENDENCIES
   rack
   rack-test
   sinatra
+  unicorn
 
 BUNDLED WITH
    1.13.6

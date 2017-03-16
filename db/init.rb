@@ -19,8 +19,8 @@ module DB
           dbname: 'docker'
       }
     else
-      # opts = DB::Config[env || 'development']
-      # # system.p opts
+      opts = DB::Config[env || 'development']
+      # system.p opts
     end
     PG::Connection.new opts
   end

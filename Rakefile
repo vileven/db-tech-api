@@ -9,6 +9,7 @@ task 'db:create', :env do |t, args|
   env  = args['env'] || 'development'
   unless ENV['DATABASE_URL']
     opts = DB::Config[env]
+    p opts
     sh "createdb #{opts['dbname']}"
   end
   sql env, 'create table schema_info (version integer not null check (version >= 0))'
@@ -17,7 +18,7 @@ task 'db:create', :env do |t, args|
 end
 
 task 'db:drop', :env do |t, args|
-  return if ENV['DATABASE_URL']
+  # return if ENV['DATABASE_URL']
   env  = args['env'] || 'development'
   opts = DB::Config[ env ]
   $db[env].finish if $db && $db[env]
