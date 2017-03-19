@@ -10,6 +10,7 @@ class User
           fullname: json["fullname"],
           about: json["about"]
       }
+
       sql_exec_prepare 'create user', user[:nickname], user[:fullname], user[:email], user[:about]
 
       # sql "INSERT INTO \"User\" (login, name, email, about) VALUES
@@ -17,6 +18,24 @@ class User
 
       return user
     end
+  end
+
+  def User.get_user_by_login(login)
+    user = sql_exec_prepare 'get user by login', login
+    if user.cmd_tuples == 0
+      return nil
+    end
+
+    user[0]
+  end
+
+  def User.change_user_by_login(login, json)
+    user = sql_exec_prepare 'change user by login', login, json["email"], json["fullname"], json["about"]
+    if user.cmd_tuples == 0
+      return nil
+    end
+
+    return user[0]
   end
 
   def User.exists?(login, email)
@@ -28,7 +47,6 @@ class User
     res = []
 
     exists_users.each do |row|
-      row.delete "id"
       res << row
     end
     return res

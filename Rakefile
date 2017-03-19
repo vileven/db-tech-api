@@ -46,7 +46,7 @@ def apply_migrations(migrations, direction, env)
     sql env, 'begin'
     (migrations.select { |m| m != '0' }).each do |m|
       puts "Migrating #{m} #{direction}"
-      sql env, File.open("db/#{m}.#{direction}.sql", "r").read
+      sql_end env, File.open("db/#{m}.#{direction}.sql", "r").read
     end
     sql env, 'commit'
     return true
@@ -79,6 +79,14 @@ def sql(env, cmd, *args)
     $db[env] = DB::connect env
   end
   $db[env].exec cmd, args
+end
+
+def sql_end(env, cmd)
+  $db ||= Hash.new
+  if !$db.has_key?(env) || $db[env].finished?
+    $db[env] = DB::connect env
+  end
+  $db[env].exec cmd
 end
 
 def current_schema_version(env)

@@ -56,5 +56,27 @@ class Application < Sinatra::Base
     end
   end
 
+  get '/user/:login/profile' do
+    user = User.get_user_by_login params[:login]
+    unless user
+      status 404
+      halt
+    end
+
+    status 200
+    response.body = json user
+  end
+
+  post '/user/:login/profile' do
+    user = User.change_user_by_login params[:login], @request_body
+    unless user
+      status 404
+      halt
+    end
+
+    status 200
+    response.body = json user
+  end
+
 end
 
