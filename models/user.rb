@@ -20,15 +20,6 @@ class User
     end
   end
 
-  def User.get_user_by_login(login)
-    user = sql_exec_prepare 'get user by login', login
-    if user.cmd_tuples == 0
-      return nil
-    end
-
-    user[0]
-  end
-
   def User.change_user_by_login(login, json)
     user = sql_exec_prepare 'change user by login', login, json["email"], json["fullname"], json["about"]
     if user.cmd_tuples == 0
@@ -38,9 +29,24 @@ class User
     return user[0]
   end
 
-  def User.exists?(login, email)
+  def User.get_user_by_login(login)
+    user = sql_exec_prepare 'get user by login', login
+    if user.cmd_tuples == 0
+      return nil
+    end
+    user[0]
+  end
 
-    exists_users = sql_exec_prepare 'user exists?', login, email
+  def User.get_user_by_login_with_id(login)
+    user = sql_exec_prepare 'get user by login with id', login
+    if user.cmd_tuples == 0
+      return nil
+    end
+    user[0]
+  end
+
+  def User.get_user_by_login_or_email(login, email)
+    exists_users = sql_exec_prepare 'get user by login or email', login, email
     if exists_users.cmd_tuples == 0
       return nil
     end
@@ -50,6 +56,15 @@ class User
       res << row
     end
     return res
+  end
+
+  def User.valid_changing?(login, json)
+    users = sql_exec_prepare 'validate changing on unique email', login, json["email"]
+    if users.cmd_tuples == 0
+      true
+    else
+      false
+    end
   end
 
   def User.validates(json)

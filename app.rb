@@ -3,7 +3,7 @@ require 'pg'
 require './init'
 require 'sinatra/json'
 require './models/user'
-
+require './models/forum'
 
 class Application < Sinatra::Base
   configure do
@@ -44,7 +44,7 @@ class Application < Sinatra::Base
   end
 
   post '/user/:login/create' do
-    exists_users = User.exists? params[:login], @request_body["email"]
+    exists_users = User.get_user_by_login_or_email params[:login], @request_body["email"]
 
     if exists_users
       status 409
@@ -68,6 +68,11 @@ class Application < Sinatra::Base
   end
 
   post '/user/:login/profile' do
+    unless User.valid_changing? params[:login], @request_body
+      status 409
+      halt
+    end
+
     user = User.change_user_by_login params[:login], @request_body
     unless user
       status 404
@@ -76,6 +81,31 @@ class Application < Sinatra::Base
 
     status 200
     response.body = json user
+  end
+
+  post '/forum/create' do
+    user = User.get_user_by_login_with_id(@request_body["user"])
+    unless user
+      status 404
+      halt
+    end
+
+
+    exists_forum = Forum.get_forum_by_slug @request_body["slug"]
+    unless exists_forum.nil?
+      status 409
+      response.body = json exists_forum
+      halt response
+    end
+
+    forum = Forum.create @request_body, user["id"]
+    unless forum
+      status 409
+      halt
+    end
+
+    status 201
+    response.body = json forum
   end
 
 end
