@@ -1,7 +1,8 @@
 require 'sinatra'
 require 'pg'
 require './init'
-require 'json'
+require 'sinatra/json'
+require './models/user'
 
 
 class Application < Sinatra::Base
@@ -17,7 +18,11 @@ class Application < Sinatra::Base
   before :method => :post do
     request.body.rewind
     @request_body = JSON.parse request.body.read.to_s
-    p @request_body
+    # p @request_body
+  end
+
+  before do
+    content_type :json
   end
 
   get '/' do
@@ -38,8 +43,17 @@ class Application < Sinatra::Base
     sql( "select test_field from test" ).first['test_field']
   end
 
-  post '/user/create' do
+  post '/user/:login/create' do
+    exists_users = User.exists? params[:login], @request_body["email"]
 
+    if exists_users
+      status 409
+      response.body = json exists_users
+    else
+      user = User.create @request_body, params[:login]
+      status 201
+      response.body = json user
+    end
   end
 
 end
