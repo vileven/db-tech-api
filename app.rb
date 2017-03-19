@@ -84,7 +84,7 @@ class Application < Sinatra::Base
   end
 
   post '/forum/create' do
-    user = User.get_user_by_login_with_id(@request_body["user"])
+    user = User.get_user_by_login_with_id @request_body["user"]
     unless user
       status 404
       halt
@@ -98,13 +98,24 @@ class Application < Sinatra::Base
       halt response
     end
 
-    forum = Forum.create @request_body, user["id"]
+    forum = Forum.create @request_body, user
     unless forum
       status 409
       halt
     end
 
     status 201
+    response.body = json forum
+  end
+
+  get '/forum/:slug/details' do
+    forum = Forum.get_forum_by_slug params[:slug]
+    unless forum
+      status 404
+      halt
+    end
+
+    status 200
     response.body = json forum
   end
 

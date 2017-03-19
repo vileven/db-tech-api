@@ -2,12 +2,12 @@ require './init'
 
 class Forum
 
-  def Forum.create(json, user_id)
+  def Forum.create(json, user)
     # posts, slug, threads, title, "user", user_id
 
     begin
       res = sql_exec_prepare 'create forum without posts and threads', json["slug"], json["title"],
-                     json["user"], user_id
+                     user["nickname"] , user["id"]
     rescue PG::Error => error
       p error
       return nil
