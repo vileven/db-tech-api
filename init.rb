@@ -99,3 +99,50 @@ SELECT
 FROM forums AS f
 WHERE LOWER(f.slug) = LOWER($1)
 "
+
+sql_set_prepare 'get forum by slug with id', "
+SELECT
+  f.id,
+  f.slug,
+  f.title,
+  f.\"user\"
+FROM forums AS f
+WHERE LOWER(f.slug) = LOWER($1)
+"
+
+sql_set_prepare 'get thread by id', "
+SELECT
+  t.author,
+  t.created,
+  t.forum,
+  t.id,
+  t.message,
+  t.title
+FROM threads AS t
+WHERE t.id = $1;
+"
+
+
+sql_set_prepare 'create thread', "
+INSERT INTO threads (author, author_id, created, forum, forum_id, message, slug, title) VALUES
+  ($1,
+   $2,
+   CASE WHEN $3::TIMESTAMPTZ IS NOT NULL
+     THEN $3
+   ELSE now() END,
+   $4,
+   $5,
+   $6,
+   CASE WHEN $7::VARCHAR(50) IS NOT NULL
+     THEN $7
+   ELSE NULL END,
+   $8)
+RETURNING
+  author,
+  created,
+  forum,
+  id,
+  message,
+  slug,
+  title
+"

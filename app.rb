@@ -2,8 +2,10 @@ require 'sinatra'
 require 'pg'
 require './init'
 require 'sinatra/json'
+# require 'json'
 require './models/user'
 require './models/forum'
+require './models/thread_manager'
 
 class Application < Sinatra::Base
   configure do
@@ -119,5 +121,41 @@ class Application < Sinatra::Base
     response.body = json forum
   end
 
+
+  post '/forum/:slug/create' do
+    forum = Forum.get_forum_by_slug_with_id params[:slug]
+    user = User.get_user_by_login_with_id @request_body["author"]
+
+    if forum.nil? || user.nil?
+      status 404
+      halt
+    end
+
+    thread = ThreadManager.get_thread_by_id @request_body["id"]
+    unless thread.nil?
+      status 409
+      response.body = json thread
+      halt response
+    end
+
+    thread = ThreadManager.create forum, user, @request_body
+    thread["id"] = Integer(thread["id"])
+    # thread["id"] = 42
+    # yyyy-MM-dd'T'HH:mm:ss.SSSZ
+    # thread["created"] = Time.new(thread["created"]).strftime("%Y-%m-%dT%H:%M:%S%z")
+    status 201
+    response.body = json thread
+  end
+
+  get '/forum/:slug/threads' do
+    forum = Forum.get_forum_by_slug_with_id params[:slug]
+    unless forum
+      status 404
+      halt
+    end
+    threads = Forum.get_threads(forum["slug"], params[:limit], params[:since], params[:desc])
+    status 200
+    response.body = json threads
+  end
 end
 
