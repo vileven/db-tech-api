@@ -80,12 +80,13 @@ class ThreadManager
 
 
     begin
-      exists_vote = sql_exec_prepare 'vote exists?', user["id"], thread["id"]
-      if exists_vote.cmd_tuples == 0
-        sql_exec_prepare 'insert vote', user["id"], thread["id"], vote_val
-      else
-        sql_exec_prepare 'update vote', user["id"], thread["id"], vote_val
-      end
+      # exists_vote = sql_exec_prepare 'vote exists?', user["id"], thread["id"]
+      # if exists_vote.cmd_tuples == 0
+      #   sql_exec_prepare 'insert vote', user["id"], thread["id"], vote_val
+      # else
+      #   sql_exec_prepare 'update vote', user["id"], thread["id"], vote_val
+      # end
+      sql_exec_prepare 'insert vote', user["id"], thread["id"], vote_val
       return true
     rescue PG::Error => error
       return false

@@ -153,15 +153,22 @@ class Application < Sinatra::Base
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     forum = Forum.get_forum_by_slug thread["forum"]
     user = User.get_user_by_login_with_id @request_body[0]["author"]
-    if forum.nil? || user.nil?
+    if forum.nil? || thread.nil?
       status 404
       halt
     end
 
-    post = Post.create forum, user,  thread, @request_body[0]
+
+    res = []
+    created_time = DateTime.now().iso8601
+    @request_body.each do |r_post|
+      user = User.get_user_by_login_with_id r_post["author"]
+      post = Post.create forum, user, thread, r_post, created_time
+      res << Post.to_read(post, params[:slug_or_id])
+    end
 
     status 201
-    response.body = json post
+    response.body = json res
   end
 
   post '/thread/:slug_or_id/vote' do
@@ -186,5 +193,6 @@ class Application < Sinatra::Base
     status 200
     response.body = json ThreadManager.to_read thread
   end
+
 end
 

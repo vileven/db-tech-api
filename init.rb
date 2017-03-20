@@ -174,7 +174,7 @@ INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, messa
    CASE WHEN $8::BIGINT IS NOT NULL THEN $8 ELSE 0 END,
    $9,
    $10)
-RETURNING author, created, forum, id::INT, is_edited AS \"isEdited\" , message, thread, thread_id;
+RETURNING *
 "
 
 sql_set_prepare 'create vote', "
@@ -194,7 +194,9 @@ SELECT * FROM votes WHERE user_id = $1 AND thread_id = $2 ;
 "
 
 sql_set_prepare 'insert vote', "
-INSERT INTO votes (user_id, thread_id, voice) VALUES ($1, $2, $3);
+INSERT INTO votes (user_id, thread_id, voice) VALUES ($1, $2, $3)
+ON CONFLICT (user_id, thread_id) DO
+  UPDATE SET voice = $3;
 "
 
 sql_set_prepare 'update vote', "
