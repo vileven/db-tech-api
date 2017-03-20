@@ -77,25 +77,18 @@ class ThreadManager
     if vote_val.nil?
       return false
     end
+
+
     begin
-      votes = 0
-      if vote_val > 0
-        vote = "+ 1"
-        transaction do |con|
-          con.exec "INSERT INTO votes (user_id, thread_id) VALUES (#{user["id"]},#{thread["id"]});"
-          votes = con.exec "UPDATE threads SET votes = votes #{vote} WHERE id = #{thread["id"]} RETURNING votes;"
-        end
+      exists_vote = sql_exec_prepare 'vote exists?', user["id"], thread["id"]
+      if exists_vote.cmd_tuples == 0
+        sql_exec_prepare 'insert vote', user["id"], thread["id"], vote_val
       else
-        vote = "- 1"
-        transaction do |con|
-          con.exec "DELETE FROM votes WHERE user_id = #{user["id"]} AND thread_id = #{thread["id"]}"
-          votes = con.exec "UPDATE threads SET votes = votes #{vote} WHERE id = #{thread["id"]} RETURNING votes;"
-        end
+        sql_exec_prepare 'update vote', user["id"], thread["id"], vote_val
       end
-      p votes[0]
-      return votes[0]["votes"]
+      return true
     rescue PG::Error => error
-      # return thread["votes"]
+      return false
     end
 
   end

@@ -167,16 +167,24 @@ class Application < Sinatra::Base
   post '/thread/:slug_or_id/vote' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     user = User.get_user_by_login_with_id @request_body["nickname"]
-    votes = ThreadManager.vote user, thread, @request_body["voice"]
-    if votes == thread["votes"]
+    unless ThreadManager.vote user, thread, @request_body["voice"]
       status 404
       halt
     end
-    p thread
-    thread["votes"] = votes
-    p thread
-    res = ThreadManager.to_read_with_votes thread
+    res = ThreadManager.to_read_with_votes ThreadManager.get_thread_by_id thread["id"]
+    p res
     response.body = json res
+  end
+
+  get '/thread/:slug_or_id/details' do
+    thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    unless thread
+      status 404
+      halt
+    end
+
+    status 200
+    response.body = json ThreadManager.to_read thread
   end
 end
 

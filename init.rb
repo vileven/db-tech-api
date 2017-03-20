@@ -193,3 +193,12 @@ sql_set_prepare 'vote exists?', "
 SELECT * FROM votes WHERE user_id = $1 AND thread_id = $2 ;
 "
 
+sql_set_prepare 'insert vote', "
+INSERT INTO votes (user_id, thread_id, voice) VALUES ($1, $2, $3);
+"
+
+sql_set_prepare 'update vote', "
+UPDATE votes
+SET voice = $3
+WHERE user_id = $1 AND thread_id = $2 ;
+"
