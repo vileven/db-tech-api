@@ -10,6 +10,11 @@ def sql(cmd, *args)
   $db.exec cmd, args
 end
 
+def transaction
+  $db ||= DB::connect
+  $db.transaction {|con| yield con}
+end
+
 def sql_set_prepare(statement, query)
   $db ||= DB::connect
   $db.prepare statement, query
@@ -95,7 +100,8 @@ sql_set_prepare 'get forum by slug', "
 SELECT
   f.slug,
   f.title,
-  f.\"user\"
+  f.\"user\",
+  f.id
 FROM forums AS f
 WHERE LOWER(f.slug) = LOWER($1)
 "
@@ -112,26 +118,16 @@ WHERE LOWER(f.slug) = LOWER($1)
 
 sql_set_prepare 'get thread by id', "
 SELECT
-  t.author,
-  t.created,
-  t.forum,
-  t.id,
-  t.message,
-  t.title
+  *
 FROM threads AS t
 WHERE t.id = $1;
 "
 
 sql_set_prepare 'get thread by slug', "
 SELECT
-  t.author,
-  t.created,
-  t.forum,
-  t.id,
-  t.message,
-  t.title
+ *
 FROM threads AS t
-WHERE t.slug = $1;
+WHERE LOWER(t.slug) = LOWER($1);
 "
 
 
@@ -180,3 +176,20 @@ INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, messa
    $10)
 RETURNING author, created, forum, id::INT, is_edited AS \"isEdited\" , message, thread, thread_id;
 "
+
+sql_set_prepare 'create vote', "
+INSERT INTO votes (user_id, thread_id) VALUES
+  ($1, $2);
+"
+
+sql_set_prepare 'change vote field', "
+UPDATE threads
+SET
+  votes = votes + $2
+WHERE id = $1;
+"
+
+sql_set_prepare 'vote exists?', "
+SELECT * FROM votes WHERE user_id = $1 AND thread_id = $2 ;
+"
+

@@ -34,18 +34,6 @@ class Application < Sinatra::Base
     # ENV['DATABASE_URL']
   end
 
-  get '/create/test/db' do
-    sql('CREATE TABLE test (test_field INTEGER NOT NULL)')
-  end
-
-  get '/add/test/value' do
-    sql "insert into test (test_field) values (15)"
-  end
-
-  get '/show/test/values' do
-    sql( "select test_field from test" ).first['test_field']
-  end
-
   post '/user/:login/create' do
     exists_users = User.get_user_by_login_or_email params[:login], @request_body["email"]
 
@@ -132,10 +120,12 @@ class Application < Sinatra::Base
       halt
     end
 
-    thread = ThreadManager.get_thread_by_id @request_body["id"]
+
+    thread = ThreadManager.get_thread_by_id_or_slug (@request_body["id"].nil?) ?
+                                                        @request_body["slug"] : @request_body["id"]
     unless thread.nil?
       status 409
-      response.body = json thread
+      response.body = json ThreadManager.to_read thread
       halt response
     end
 
@@ -161,12 +151,9 @@ class Application < Sinatra::Base
 
   post '/thread/:slug_or_id/create' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
-    p thread
-    forum = Forum.get_forum_by_thread_id thread["id"]
-    p @request_body[0]["author"]
+    forum = Forum.get_forum_by_slug thread["forum"]
     user = User.get_user_by_login_with_id @request_body[0]["author"]
-    p user
-    unless forum || user
+    if forum.nil? || user.nil?
       status 404
       halt
     end
@@ -175,7 +162,21 @@ class Application < Sinatra::Base
 
     status 201
     response.body = json post
+  end
 
+  post '/thread/:slug_or_id/vote' do
+    thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    user = User.get_user_by_login_with_id @request_body["nickname"]
+    votes = ThreadManager.vote user, thread, @request_body["voice"]
+    if votes == thread["votes"]
+      status 404
+      halt
+    end
+    p thread
+    thread["votes"] = votes
+    p thread
+    res = ThreadManager.to_read_with_votes thread
+    response.body = json res
   end
 end
 
