@@ -37,6 +37,15 @@ class Forum
     return forum[0]
   end
 
+  def Forum.get_forum_by_thread_id(thread_id)
+    forum = sql_exec_prepare 'get forum by thread id', thread_id
+    if forum.cmd_tuples == 0
+      return nil
+    end
+
+    return forum[0]
+  end
+
   def Forum.get_threads(slug, limit, date, sort)
 
     dates = ''

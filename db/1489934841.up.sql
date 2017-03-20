@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS forums (
   user_id BIGINT REFERENCES users (id)            NOT NULL
 );
 
-CREATE UNIQUE INDEX index_posts_on_slug
+CREATE UNIQUE INDEX index_forum_on_slug
   ON forums (LOWER(slug));

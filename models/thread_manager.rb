@@ -26,4 +26,16 @@ class ThreadManager
 
     thread[0]
   end
+
+  def ThreadManager.get_thread_by_id_or_slug(id_or_slug)
+    thread = sql_exec_prepare 'get thread by id', id_or_slug.to_i
+    if thread.cmd_tuples == 0
+      thread = sql_exec_prepare 'get thread by slug', id_or_slug
+      if thread.cmd_tuples == 0
+        return nil
+      end
+    end
+    p thread
+    thread[0]
+  end
 end

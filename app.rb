@@ -6,6 +6,7 @@ require 'sinatra/json'
 require './models/user'
 require './models/forum'
 require './models/thread_manager'
+require './models/post'
 
 class Application < Sinatra::Base
   configure do
@@ -156,6 +157,25 @@ class Application < Sinatra::Base
     threads = Forum.get_threads(forum["slug"], params[:limit], params[:since], params[:desc])
     status 200
     response.body = json threads
+  end
+
+  post '/thread/:slug_or_id/create' do
+    thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    p thread
+    forum = Forum.get_forum_by_thread_id thread["id"]
+    p @request_body[0]["author"]
+    user = User.get_user_by_login_with_id @request_body[0]["author"]
+    p user
+    unless forum || user
+      status 404
+      halt
+    end
+
+    post = Post.create forum, user,  thread, @request_body[0]
+
+    status 201
+    response.body = json post
+
   end
 end
 

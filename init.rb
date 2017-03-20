@@ -122,6 +122,18 @@ FROM threads AS t
 WHERE t.id = $1;
 "
 
+sql_set_prepare 'get thread by slug', "
+SELECT
+  t.author,
+  t.created,
+  t.forum,
+  t.id,
+  t.message,
+  t.title
+FROM threads AS t
+WHERE t.slug = $1;
+"
+
 
 sql_set_prepare 'create thread', "
 INSERT INTO threads (author, author_id, created, forum, forum_id, message, slug, title) VALUES
@@ -145,4 +157,26 @@ RETURNING
   message,
   slug,
   title
+"
+
+sql_set_prepare 'get forum by thread id', "
+SELECT DISTINCT f.id, f.slug
+    FROM
+      forums AS f
+      JOIN threads AS t ON t.id = $1 AND f.id = t.forum_id
+"
+
+sql_set_prepare 'create post', "
+INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, message, parent, thread, thread_id) VALUES
+  ($1,
+   $2,
+   CASE WHEN $3::TIMESTAMPTZ IS NOT NULL THEN $3 ELSE now() END,
+   $4,
+   $5,
+   $6,
+   $7,
+   CASE WHEN $8::BIGINT IS NOT NULL THEN $8 ELSE 0 END,
+   $9,
+   $10)
+RETURNING author, created, forum, id::INT, is_edited AS \"isEdited\" , message, thread, thread_id;
 "
