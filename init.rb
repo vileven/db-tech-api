@@ -10,6 +10,11 @@ def sql(cmd, *args)
   $db.exec cmd, args
 end
 
+def sql_without(cmd)
+  $db ||= DB::connect
+  $db.exec cmd
+end
+
 def transaction
   $db ||= DB::connect
   $db.transaction {|con| yield con}
@@ -67,9 +72,9 @@ WHERE lower(u.nickname) = lower($1) OR lower(u.email) = lower($2);
 sql_set_prepare 'change user by login', "
 UPDATE users
 SET
-  email    = CASE WHEN LOWER($2) IS NOT NULL THEN $2 ELSE email END,
-  fullname = CASE WHEN LOWER($3) IS NOT NULL THEN $3 ELSE fullname END,
-  about    = CASE WHEN LOWER($4) IS NOT NULL THEN $4 ELSE about END
+  email    = CASE WHEN $2::VARCHAR(50) IS NOT NULL THEN $2 ELSE email END,
+  fullname = CASE WHEN $3::VARCHAR(50) IS NOT NULL THEN $3 ELSE fullname END,
+  about    = CASE WHEN $4::VARCHAR(50) IS NOT NULL THEN $4 ELSE about END
 WHERE LOWER(nickname) = LOWER($1)
 RETURNING nickname, fullname, email, about;
 "
@@ -163,7 +168,7 @@ SELECT DISTINCT f.id, f.slug
 "
 
 sql_set_prepare 'create post', "
-INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, message, parent, thread, thread_id) VALUES
+INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, message, parent, path, thread, thread_id) VALUES
   ($1,
    $2,
    CASE WHEN $3::TIMESTAMPTZ IS NOT NULL THEN $3 ELSE now() END,
@@ -172,6 +177,7 @@ INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, messa
    $6,
    $7,
    CASE WHEN $8::BIGINT IS NOT NULL THEN $8 ELSE 0 END,
+   (SELECT path FROM posts WHERE id = $8) || (select currval('posts_id_seq')::integer),
    $9,
    $10)
 RETURNING *

@@ -194,5 +194,36 @@ class Application < Sinatra::Base
     response.body = json ThreadManager.to_read thread
   end
 
+  get '/thread/:slug_or_id/posts' do
+    thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    unless thread
+      status 404
+      halt
+    end
+
+    unless %w(flat tree parent_tree).include? params["sort"]
+      params["sort"] = 'flat'
+    end
+
+    unless params["limit"]
+      params["limit"] = 100
+    end
+
+    unless params["marker"]
+      params["marker"] = "0"
+    end
+
+    if params["desc"] == 'true'
+      params["desc"] = 'DESC'
+    else
+      params["desc"] = 'ASC'
+    end
+
+    status 200
+    response.body = json ThreadManager.get_posts thread, params["limit"], params["sort"], params["marker"],
+                                                 params[:slug_or_id], params["desc"]
+  end
+
+
 end
 

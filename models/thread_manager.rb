@@ -1,4 +1,5 @@
 require './init'
+require_relative 'post'
 require 'time'
 # require 'date_time'
 class ThreadManager
@@ -118,6 +119,82 @@ class ThreadManager
         title: thread["title"],
         votes: ThreadManager.to_int(thread["votes"])
     }
+  end
+
+  def ThreadManager.get_posts(thread, limit, sort, marker,slug_or_id, order)
+    if sort == 'flat'
+      posts = sql "
+                    SELECT
+                      *
+                    FROM posts as p
+                    WHERE p.thread_id = #{thread["id"]}
+                    ORDER BY p.created #{order}, p.id #{order}
+                    LIMIT #{limit} OFFSET #{marker}
+                   "
+      res = {}
+      res["marker"] = (posts.cmd_tuples + marker.to_i).to_s
+      posts_container = []
+      posts.each do |post|
+        posts_container << Post.to_read(post, slug_or_id)
+      end
+      res["posts"] = posts_container
+      return res
+    end
+
+    if sort == 'tree'
+      posts = sql "
+                    SELECT
+                      *
+                    FROM posts AS p
+                    WHERE p.thread_id = #{thread["id"]} AND p.path && ARRAY[p.id::INTEGER]
+                    ORDER BY path #{order}, p.id #{order}
+                    LIMIT #{limit} OFFSET #{marker}
+                  "
+      res = {}
+      res["marker"] = (posts.cmd_tuples + marker.to_i).to_s
+      posts_container = []
+      posts.each do |post|
+        posts_container << Post.to_read(post, slug_or_id)
+      end
+      res["posts"] = posts_container
+      return res
+    end
+
+    if sort == 'parent_tree'
+      posts = sql_without "
+                    WITH sub AS (
+                      SELECT *
+                      FROM posts
+                      WHERE parent = 0 AND thread_id = #{thread["id"]}
+                      ORDER BY path #{order}, id #{order}
+                      LIMIT #{limit} OFFSET #{marker}
+                    )
+
+                    SELECT
+                      *
+                    FROM posts AS p
+                    WHERE p.thread_id = #{thread["id"]} AND p.path && ARRAY[p.id::INTEGER] AND p.path[1] IN (SELECT id FROM sub)
+                    ORDER BY path #{order}, p.id #{order};
+
+
+                  "
+      cnt = sql "SELECT count(id) FROM (
+                      SELECT *
+                      FROM posts
+                      WHERE parent = 0 AND thread_id = #{thread["id"]}
+                      ORDER BY path #{order}, id #{order}
+                      LIMIT #{limit} OFFSET #{marker}
+                    ) AS e;"
+      p cnt[0]
+      res = {}
+      res["marker"] = (cnt[0]["count"].to_i + marker.to_i).to_s
+      posts_container = []
+      posts.each do |post|
+        posts_container << Post.to_read(post, slug_or_id)
+      end
+      res["posts"] = posts_container
+      return res
+    end
   end
 
 end
