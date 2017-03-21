@@ -1,3 +1,5 @@
+#\ -s puma
+
 require './app'
 require 'sinatra'
 

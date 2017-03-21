@@ -2,7 +2,6 @@ require 'sinatra'
 require 'pg'
 require './init'
 require 'sinatra/json'
-# require 'json'
 require './models/user'
 require './models/forum'
 require './models/thread_manager'
@@ -11,6 +10,7 @@ require './models/status_service'
 
 class Application < Sinatra::Base
   configure do
+    set :server, :puma
     set :bind, '0.0.0.0'
 
     set :method do |method|
