@@ -88,7 +88,7 @@ class ThreadManager
       # end
       sql_exec_prepare 'insert vote', user["id"], thread["id"], vote_val
       return true
-    rescue PG::Error => error
+    rescue PG::Error, NoMethodError => error
       return false
     end
 
@@ -196,6 +196,7 @@ class ThreadManager
 
   def ThreadManager.update_thread(thread, json)
     begin
+      p json
       result = sql_exec_prepare 'update thread', thread["id"], json["message"], json["title"]
       return result[0]
     rescue PG::Error => err

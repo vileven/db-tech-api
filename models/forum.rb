@@ -27,6 +27,16 @@ class Forum
     forum[0]
   end
 
+  def Forum.get_forum_by_id(id)
+    forum = sql_exec_prepare 'get forum by id', id
+
+    if forum.cmd_tuples == 0
+      return nil
+    end
+
+    forum[0]
+  end
+
   def Forum.get_forum_by_slug(slug)
     forum = sql_exec_prepare 'get forum by slug', slug
 

@@ -211,8 +211,8 @@ WHERE user_id = $1 AND thread_id = $2 ;
 sql_set_prepare 'update thread',"
 UPDATE threads
 SET
-  message = $2,
-  title = $3
+  message = CASE WHEN $2::TEXT IS NOT NULL THEN $2 ELSE message END,
+  title = CASE WHEN $3::VARCHAR(50) IS NOT NULL THEN $3 ELSE title END
 WHERE id = $1
 RETURNING *
 "
@@ -226,8 +226,30 @@ WHERE p.id = $1 ;
 sql_set_prepare 'update post', "
 UPDATE posts
 SET
-  message = $2,
-  is_edited = TRUE
+  message = CASE WHEN $2::TEXT IS NOT NULL THEN $2 ELSE message END,
+  is_edited = CASE WHEN $2::TEXT <> message THEN TRUE ELSE is_edited END
 WHERE id = $1
 RETURNING *;
 "
+
+sql_set_prepare 'get db info', %q{
+SELECT
+  (SELECT count(*) FROM forums) AS forum,
+  (SELECT count(*) FROM posts) AS post,
+  (SELECT count(*) FROM threads) AS thread,
+  (SELECT count(*) FROM users) AS "user";
+}
+
+sql_set_prepare 'get user by id', %{
+SELECT
+  *
+FROM users
+WHERE id = $1;
+}
+
+sql_set_prepare 'get forum by id', %{
+SELECT
+  *
+FROM forums
+WHERE id = $1;
+}

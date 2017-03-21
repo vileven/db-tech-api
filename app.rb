@@ -7,6 +7,7 @@ require './models/user'
 require './models/forum'
 require './models/thread_manager'
 require './models/post'
+require './models/status_service'
 
 class Application < Sinatra::Base
   configure do
@@ -20,7 +21,11 @@ class Application < Sinatra::Base
 
   before :method => :post do
     request.body.rewind
-    @request_body = JSON.parse request.body.read.to_s
+    begin
+      @request_body = JSON.parse request.body.read.to_s
+    rescue JSON::ParserError => e
+      # @request_body = {}
+    end
     # p @request_body
   end
 
@@ -271,28 +276,49 @@ class Application < Sinatra::Base
       status 404
       halt
     end
-
+    p thread
     new_thread = ThreadManager.update_thread thread, @request_body
-
+    p new_thread
     status 200
     response.body = json ThreadManager.to_read new_thread
   end
 
   get '/post/:id/details' do
+    res = {}
+    if params["related"].nil?
+      related = []
+    else
+      related = params["related"].split ","
+    end
+    p related
     post = Post.get_post_by_id params[:id]
     unless post
       status 404
       halt
     end
 
-    res = {}
+    if related.include? "user"
+      user = User.get_user_by_login post["author"]
+      res["author"] = user
+    end
+
+    if related.include? "forum"
+      forum = Forum.get_forum_by_id post["forum_id"]
+      res["forum"] = Forum.to_read forum
+    end
+
+    if related.include? "thread"
+      thread = ThreadManager.get_thread_by_id post["thread_id"]
+      res["thread"] = ThreadManager.to_read thread
+    end
+
     res["post"] = Post.to_read post
     status 200
     response.body = json res
   end
 
   post '/post/:id/details' do
-    post = Post.update_post params["id"],@request_body["message"]
+    post = Post.update_post params["id"], @request_body["message"]
     unless post
       status 404
       halt
@@ -303,8 +329,15 @@ class Application < Sinatra::Base
   end
 
   get '/service/status' do
-
+    status 200
+    response.body = json StatusService.get_info_db
   end
+
+  post '/service/clear' do
+    status 200
+    StatusService.restart_db
+  end
+
 
 end
 

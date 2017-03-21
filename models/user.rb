@@ -75,6 +75,10 @@ class User
     @login, @email, @name, @about = login, email, name, about
   end
 
+  def User.get_user_by_id(id)
+    sql_exec_prepare 'get user by id', id
+  end
+
   def save
 
   end
