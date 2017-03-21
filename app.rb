@@ -85,7 +85,7 @@ class Application < Sinatra::Base
     exists_forum = Forum.get_forum_by_slug @request_body["slug"]
     unless exists_forum.nil?
       status 409
-      response.body = json exists_forum
+      response.body = json Forum.to_read exists_forum
       halt response
     end
 
@@ -96,7 +96,7 @@ class Application < Sinatra::Base
     end
 
     status 201
-    response.body = json forum
+    response.body = json Forum.to_read forum
   end
 
   get '/forum/:slug/details' do
@@ -107,7 +107,7 @@ class Application < Sinatra::Base
     end
 
     status 200
-    response.body = json forum
+    response.body = json Forum.to_read forum
   end
 
 
@@ -160,7 +160,7 @@ class Application < Sinatra::Base
 
 
     res = []
-    created_time = DateTime.now().iso8601
+    created_time = DateTime.now.iso8601
     @request_body.each do |r_post|
       user = User.get_user_by_login_with_id r_post["author"]
       post = Post.create forum, user, thread, r_post, created_time
@@ -191,7 +191,7 @@ class Application < Sinatra::Base
     end
 
     status 200
-    response.body = json ThreadManager.to_read thread
+    response.body = json ThreadManager.to_read_with_votes thread
   end
 
   get '/thread/:slug_or_id/posts' do
@@ -224,6 +224,46 @@ class Application < Sinatra::Base
                                                  params[:slug_or_id], params["desc"]
   end
 
+  get '/forum/:slug/users' do
+    forum = Forum.get_forum_by_slug params[:slug]
+    unless forum
+      status 404
+      halt
+    end
 
+    unless params["limit"]
+      params["limit"] = 100
+    end
+
+    if params["desc"] == 'true'
+      params["desc"] = 'DESC'
+      unless params["since"]
+        params["since"] = "Z"
+      end
+    else
+      params["desc"] = 'ASC'
+      unless params["since"]
+        params["since"] = ""
+      end
+    end
+    p params["desc"]
+    status 200
+    res = Forum.get_users forum, params["limit"], params["since"], params["desc"]
+    p res
+    response.body = json res
+  end
+
+  post '/thread/:slug_or_id/details' do
+    thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    unless thread
+      status 404
+      halt
+    end
+
+    new_thread = ThreadManager.update_thread thread, @request_body
+
+    status 200
+    response.body = json ThreadManager.to_read new_thread
+  end
 end
 

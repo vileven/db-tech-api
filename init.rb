@@ -103,10 +103,7 @@ WHERE LOWER(u.nickname) = LOWER($1);
 
 sql_set_prepare 'get forum by slug', "
 SELECT
-  f.slug,
-  f.title,
-  f.\"user\",
-  f.id
+  *
 FROM forums AS f
 WHERE LOWER(f.slug) = LOWER($1)
 "
@@ -209,4 +206,13 @@ sql_set_prepare 'update vote', "
 UPDATE votes
 SET voice = $3
 WHERE user_id = $1 AND thread_id = $2 ;
+"
+
+sql_set_prepare 'update thread',"
+UPDATE threads
+SET
+  message = $2,
+  title = $3
+WHERE id = $1
+RETURNING *
 "

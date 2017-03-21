@@ -46,6 +46,17 @@ class Forum
     return forum[0]
   end
 
+  def Forum.to_read(forum)
+    return {
+      posts: forum["posts"].to_i,
+      slug: forum["slug"],
+      threads: forum["threads"].to_i,
+      title: forum["title"],
+      user: forum["user"]
+    }
+  end
+
+
   def Forum.get_threads(slug, limit, date, sort)
 
     dates = ''
@@ -91,6 +102,47 @@ class Forum
       row["created"] = DateTime.parse(row["created"]).iso8601(3)
       row["id"] = Integer(row["id"])
       res << row
+    end
+    res
+  end
+
+  def Forum.get_users(forum, limit, since, sortion)
+    if sortion == "ASC"
+      sort = " > LOWER($2)"
+    else
+      sort = " < LOWER($2)"
+    end
+    users = sql"
+                  WITH sub AS (
+                    SELECT
+                      u.about,
+                      u.email,
+                      u.fullname,
+                      u.nickname
+                    FROM
+                      users AS u
+                      JOIN posts AS p ON u.id = p.author_id AND p.forum_id = $1
+                    UNION
+                    SELECT
+                      u.about,
+                      u.email,
+                      u.fullname,
+                      u.nickname
+                    FROM
+                      users AS u
+                      JOIN threads AS t ON u.id = t.author_id AND t.forum_id = $1
+                  )
+                  SELECT
+                    about, email, fullname, nickname
+                  FROM sub
+                  WHERE LOWER(nickname) #{sort}
+                  ORDER BY lower(sub.nickname) #{sortion}
+                  LIMIT #{limit};
+              ",
+               forum["id"], since
+    res = []
+    users.each do |user|
+      res << user
     end
 
     res

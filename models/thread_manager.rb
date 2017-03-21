@@ -13,7 +13,6 @@ class ThreadManager
       return nil
     end
     res = thread[0]
-    p res["created"]
     res["created"] = DateTime.parse(res["created"]).iso8601(3)
     res
 
@@ -69,11 +68,11 @@ class ThreadManager
     if thread.cmd_tuples == 0
       return nil
     end
+
     thread[0]
   end
 
   def ThreadManager.vote(user, thread, vote)
-    p vote
     vote_val = ThreadManager.to_int vote
     if vote_val.nil?
       return false
@@ -108,7 +107,6 @@ class ThreadManager
   end
 
   def ThreadManager.to_read_with_votes(thread)
-    p thread
     return {
         author: thread["author"],
         created: DateTime.parse(thread["created"]).iso8601(3),
@@ -185,7 +183,6 @@ class ThreadManager
                       ORDER BY path #{order}, id #{order}
                       LIMIT #{limit} OFFSET #{marker}
                     ) AS e;"
-      p cnt[0]
       res = {}
       res["marker"] = (cnt[0]["count"].to_i + marker.to_i).to_s
       posts_container = []
@@ -195,6 +192,16 @@ class ThreadManager
       res["posts"] = posts_container
       return res
     end
+  end
+
+  def ThreadManager.update_thread(thread, json)
+    begin
+      result = sql_exec_prepare 'update thread', thread["id"], json["message"], json["title"]
+      return result[0]
+    rescue PG::Error => err
+      return nil
+    end
+
   end
 
 end
