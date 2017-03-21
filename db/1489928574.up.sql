@@ -1,3 +1,5 @@
+-- ALTER USER postgres SET timezone='Europe/Moscow';
+-- set timezone='Europe/Moscow';
 CREATE TABLE IF NOT EXISTS users (
   id       BIGSERIAL PRIMARY KEY,
   nickname VARCHAR(50)  NOT NULL UNIQUE,

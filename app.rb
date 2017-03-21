@@ -12,7 +12,6 @@ class Application < Sinatra::Base
   configure do
     set :server, :puma
     set :bind, '0.0.0.0'
-
     set :method do |method|
       condition { request.request_method == method.to_s.upcase }
     end
@@ -167,9 +166,9 @@ class Application < Sinatra::Base
       halt
     end
 
-
     res = []
-    created_time = DateTime.now.iso8601
+
+    created_time = DateTime.now.iso8601(3)
     @request_body.each do |r_post|
       user = User.get_user_by_login_with_id r_post["author"]
       unless user
@@ -196,7 +195,6 @@ class Application < Sinatra::Base
       halt
     end
     res = ThreadManager.to_read_with_votes ThreadManager.get_thread_by_id thread["id"]
-    p res
     response.body = json res
   end
 
@@ -263,10 +261,8 @@ class Application < Sinatra::Base
         params["since"] = ""
       end
     end
-    p params["desc"]
     status 200
     res = Forum.get_users forum, params["limit"], params["since"], params["desc"]
-    p res
     response.body = json res
   end
 
@@ -276,9 +272,7 @@ class Application < Sinatra::Base
       status 404
       halt
     end
-    p thread
     new_thread = ThreadManager.update_thread thread, @request_body
-    p new_thread
     status 200
     response.body = json ThreadManager.to_read new_thread
   end
@@ -290,7 +284,6 @@ class Application < Sinatra::Base
     else
       related = params["related"].split ","
     end
-    p related
     post = Post.get_post_by_id params[:id]
     unless post
       status 404
@@ -338,6 +331,13 @@ class Application < Sinatra::Base
     StatusService.restart_db
   end
 
-
 end
+
+
+
+
+
+
+
+
 

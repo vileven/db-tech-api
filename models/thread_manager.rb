@@ -196,7 +196,6 @@ class ThreadManager
 
   def ThreadManager.update_thread(thread, json)
     begin
-      p json
       result = sql_exec_prepare 'update thread', thread["id"], json["message"], json["title"]
       return result[0]
     rescue PG::Error => err

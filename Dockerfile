@@ -2,6 +2,12 @@ FROM ubuntu:16.04
 
 MAINTAINER s.volodin
 
+ENV TZ=Europe/Moscow
+RUN echo $TZ | tee /etc/timezone
+RUN apt-get install -y tzdata
+RUN ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+RUN dpkg-reconfigure --frontend noninteractive tzdata
+
 # Обвновление списка пакетов
 RUN apt-get -y update && apt-get install -y net-tools
 
@@ -88,6 +94,7 @@ ADD . $APP_HOME
 # Start server
 ENV DATABASE_URL 'postgresql://docker:docker@localhost/docker
 
+
 ENV PORT 5000
 EXPOSE 5000
-CMD ["/bin/bash", "-l", "-c", "service postgresql start && ruby app.rb"]
+CMD ["/bin/bash", "-l", "-c", "service postgresql start && rake db:create &&rake db:migrate && bundle exec puma --config puma.rb"]
