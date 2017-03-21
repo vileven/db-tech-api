@@ -151,6 +151,10 @@ class Application < Sinatra::Base
 
   post '/thread/:slug_or_id/create' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
+    unless thread
+      status 404
+      halt
+    end
     forum = Forum.get_forum_by_slug thread["forum"]
     user = User.get_user_by_login_with_id @request_body[0]["author"]
     if forum.nil? || thread.nil?
@@ -163,8 +167,16 @@ class Application < Sinatra::Base
     created_time = DateTime.now.iso8601
     @request_body.each do |r_post|
       user = User.get_user_by_login_with_id r_post["author"]
+      unless user
+        status 404
+        halt
+      end
       post = Post.create forum, user, thread, r_post, created_time
-      res << Post.to_read(post, params[:slug_or_id])
+      unless post
+        status 409
+        halt
+      end
+      res << Post.to_read_with_thread_slug(post, params[:slug_or_id])
     end
 
     status 201
@@ -265,5 +277,34 @@ class Application < Sinatra::Base
     status 200
     response.body = json ThreadManager.to_read new_thread
   end
+
+  get '/post/:id/details' do
+    post = Post.get_post_by_id params[:id]
+    unless post
+      status 404
+      halt
+    end
+
+    res = {}
+    res["post"] = Post.to_read post
+    status 200
+    response.body = json res
+  end
+
+  post '/post/:id/details' do
+    post = Post.update_post params["id"],@request_body["message"]
+    unless post
+      status 404
+      halt
+    end
+
+    status 200
+    response.body = json Post.to_read post
+  end
+
+  get '/service/status' do
+
+  end
+
 end
 

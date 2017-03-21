@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS posts (
   forum     VARCHAR(50)                                        NOT NULL,
   forum_id  BIGINT REFERENCES forums (id)                      NOT NULL,
   message   TEXT                                               NOT NULL,
-  parent    BIGINT                                             NOT NULL DEFAULT currval('posts_id_seq'),
+  parent    BIGINT   REFERENCES posts(id),
   path      INT[]                                      NOT NULL,
   thread    VARCHAR(50),
   thread_id BIGINT REFERENCES threads (id)                     NOT NULL

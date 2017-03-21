@@ -133,7 +133,7 @@ class ThreadManager
       res["marker"] = (posts.cmd_tuples + marker.to_i).to_s
       posts_container = []
       posts.each do |post|
-        posts_container << Post.to_read(post, slug_or_id)
+        posts_container << Post.to_read_with_thread_slug(post, slug_or_id)
       end
       res["posts"] = posts_container
       return res
@@ -152,7 +152,7 @@ class ThreadManager
       res["marker"] = (posts.cmd_tuples + marker.to_i).to_s
       posts_container = []
       posts.each do |post|
-        posts_container << Post.to_read(post, slug_or_id)
+        posts_container << Post.to_read_with_thread_slug(post, slug_or_id)
       end
       res["posts"] = posts_container
       return res
@@ -163,7 +163,7 @@ class ThreadManager
                     WITH sub AS (
                       SELECT *
                       FROM posts
-                      WHERE parent = 0 AND thread_id = #{thread["id"]}
+                      WHERE parent is NULL AND thread_id = #{thread["id"]}
                       ORDER BY path #{order}, id #{order}
                       LIMIT #{limit} OFFSET #{marker}
                     )
@@ -179,7 +179,7 @@ class ThreadManager
       cnt = sql "SELECT count(id) FROM (
                       SELECT *
                       FROM posts
-                      WHERE parent = 0 AND thread_id = #{thread["id"]}
+                      WHERE parent IS NULL AND thread_id = #{thread["id"]}
                       ORDER BY path #{order}, id #{order}
                       LIMIT #{limit} OFFSET #{marker}
                     ) AS e;"
@@ -187,7 +187,7 @@ class ThreadManager
       res["marker"] = (cnt[0]["count"].to_i + marker.to_i).to_s
       posts_container = []
       posts.each do |post|
-        posts_container << Post.to_read(post, slug_or_id)
+        posts_container << Post.to_read_with_thread_slug(post, slug_or_id)
       end
       res["posts"] = posts_container
       return res
