@@ -173,7 +173,7 @@ INSERT INTO posts (author, author_id, created, is_edited, forum, forum_id, messa
    $5,
    $6,
    $7,
-   CASE WHEN $8::BIGINT IS NOT NULL THEN $8 ELSE 0 END,
+   CASE WHEN $8::BIGINT IS NOT NULL THEN $8 ELSE NULL END,
    (SELECT path FROM posts WHERE id = $8) || (select currval('posts_id_seq')::integer),
    $9,
    $10)
@@ -215,4 +215,19 @@ SET
   title = $3
 WHERE id = $1
 RETURNING *
+"
+sql_set_prepare 'get post by id',"
+SELECT
+  *
+FROM posts AS p
+WHERE p.id = $1 ;
+"
+
+sql_set_prepare 'update post', "
+UPDATE posts
+SET
+  message = $2,
+  is_edited = TRUE
+WHERE id = $1
+RETURNING *;
 "

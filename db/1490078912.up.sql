@@ -23,6 +23,15 @@ BEGIN
   SET
     posts = posts + 1
   WHERE id = NEW.forum_id;
+
+  IF NEW.parent IS NOT NULL THEN
+    PERFORM 1 FROM posts p
+    WHERE p.id = NEW.parent AND NEW.thread_id = p.thread_id AND p.forum_id = NEW.forum_id ;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION '% on % is not allowed. % - %',
+      TG_OP, TG_TABLE_NAME, NEW.id, NEW.parent;
+    END IF;
+  END IF;
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
