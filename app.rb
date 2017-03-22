@@ -38,7 +38,7 @@ class Application < Sinatra::Base
     # ENV['DATABASE_URL']
   end
 
-  post '/user/:login/create' do
+  post '/api/user/:login/create' do
     exists_users = User.get_user_by_login_or_email params[:login], @request_body["email"]
 
     if exists_users
@@ -51,7 +51,7 @@ class Application < Sinatra::Base
     end
   end
 
-  get '/user/:login/profile' do
+  get '/api/user/:login/profile' do
     user = User.get_user_by_login params[:login]
     unless user
       status 404
@@ -62,7 +62,7 @@ class Application < Sinatra::Base
     response.body = json user
   end
 
-  post '/user/:login/profile' do
+  post '/api/user/:login/profile' do
     unless User.valid_changing? params[:login], @request_body
       status 409
       halt
@@ -78,7 +78,7 @@ class Application < Sinatra::Base
     response.body = json user
   end
 
-  post '/forum/create' do
+  post '/api/forum/create' do
     user = User.get_user_by_login_with_id @request_body["user"]
     unless user
       status 404
@@ -103,7 +103,7 @@ class Application < Sinatra::Base
     response.body = json Forum.to_read forum
   end
 
-  get '/forum/:slug/details' do
+  get '/api/forum/:slug/details' do
     forum = Forum.get_forum_by_slug params[:slug]
     unless forum
       status 404
@@ -115,7 +115,7 @@ class Application < Sinatra::Base
   end
 
 
-  post '/forum/:slug/create' do
+  post '/api/forum/:slug/create' do
     forum = Forum.get_forum_by_slug_with_id params[:slug]
     user = User.get_user_by_login_with_id @request_body["author"]
 
@@ -142,7 +142,7 @@ class Application < Sinatra::Base
     response.body = json thread
   end
 
-  get '/forum/:slug/threads' do
+  get '/api/forum/:slug/threads' do
     forum = Forum.get_forum_by_slug_with_id params[:slug]
     unless forum
       status 404
@@ -153,7 +153,7 @@ class Application < Sinatra::Base
     response.body = json threads
   end
 
-  post '/thread/:slug_or_id/create' do
+  post '/api/thread/:slug_or_id/create' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     unless thread
       status 404
@@ -187,7 +187,7 @@ class Application < Sinatra::Base
     response.body = json res
   end
 
-  post '/thread/:slug_or_id/vote' do
+  post '/api/thread/:slug_or_id/vote' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     user = User.get_user_by_login_with_id @request_body["nickname"]
     unless ThreadManager.vote user, thread, @request_body["voice"]
@@ -198,7 +198,7 @@ class Application < Sinatra::Base
     response.body = json res
   end
 
-  get '/thread/:slug_or_id/details' do
+  get '/api/thread/:slug_or_id/details' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     unless thread
       status 404
@@ -209,7 +209,7 @@ class Application < Sinatra::Base
     response.body = json ThreadManager.to_read_with_votes thread
   end
 
-  get '/thread/:slug_or_id/posts' do
+  get '/api/thread/:slug_or_id/posts' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     unless thread
       status 404
@@ -239,7 +239,7 @@ class Application < Sinatra::Base
                                                  params[:slug_or_id], params["desc"]
   end
 
-  get '/forum/:slug/users' do
+  get '/api/forum/:slug/users' do
     forum = Forum.get_forum_by_slug params[:slug]
     unless forum
       status 404
@@ -266,7 +266,7 @@ class Application < Sinatra::Base
     response.body = json res
   end
 
-  post '/thread/:slug_or_id/details' do
+  post '/api/thread/:slug_or_id/details' do
     thread = ThreadManager.get_thread_by_id_or_slug params[:slug_or_id]
     unless thread
       status 404
@@ -277,7 +277,7 @@ class Application < Sinatra::Base
     response.body = json ThreadManager.to_read new_thread
   end
 
-  get '/post/:id/details' do
+  get '/api/post/:id/details' do
     res = {}
     if params["related"].nil?
       related = []
@@ -310,7 +310,7 @@ class Application < Sinatra::Base
     response.body = json res
   end
 
-  post '/post/:id/details' do
+  post '/api/post/:id/details' do
     post = Post.update_post params["id"], @request_body["message"]
     unless post
       status 404
@@ -321,12 +321,12 @@ class Application < Sinatra::Base
     response.body = json Post.to_read post
   end
 
-  get '/service/status' do
+  get '/api/service/status' do
     status 200
     response.body = json StatusService.get_info_db
   end
 
-  post '/service/clear' do
+  post '/api/service/clear' do
     status 200
     StatusService.restart_db
   end
