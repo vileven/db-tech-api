@@ -5,7 +5,7 @@
 # and maximum, this matches the default thread size of Active Record.
 #
 
-root = "#{Dir.getwd}"
+# root = "#{Dir.getwd}"
 
 threads_count = ENV.fetch("SINATRA_MAX_THREADS") { 5 }.to_i
 threads threads_count, threads_count
@@ -16,8 +16,8 @@ port        ENV.fetch("PORT") { 5000 }
 
 # Specifies the `environment` that Puma will run in.
 #
-environment ENV.fetch("RACK_ENV") { "development" }
-rackup "#{root}/config.ru"
+# environment ENV.fetch("RACK_ENV") { "development" }
+# rackup "#{root}/config.ru"
 
 # Specifies the number of `workers` to boot in clustered mode.
 # Workers are forked webserver processes. If using threads and workers together
