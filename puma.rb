@@ -17,9 +17,7 @@ port        ENV.fetch("PORT") { 5000 }
 # Specifies the `environment` that Puma will run in.
 #
 environment ENV.fetch("RACK_ENV") { "development" }
-pidfile "#{root}/tmp/pids/puma.pid"
 rackup "#{root}/config.ru"
-state_path "#{root}/tmp/pids/puma.state"
 
 # Specifies the number of `workers` to boot in clustered mode.
 # Workers are forked webserver processes. If using threads and workers together
